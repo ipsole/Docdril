@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docdril Calculator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+        :root {
+            --glass-bg: rgba(35, 35, 35, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-color: #f0f0f0;
+            --operator-bg: rgba(255, 255, 255, 0.2);
+            --page-bg: #1a1a1a;
+            --body-bg: #101010;
+            --glow-color: rgba(255, 255, 255, 0.15); /* White glow color */
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--body-bg);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 380px; /* Optimized for mobile screens */
+            background-color: var(--page-bg);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin: 0;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2); /* Subtle text glow */
+        }
+
+        .calculator {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 20px;
+            /* NEW: White glow effect around the calculator */
+            box-shadow: 0 0 15px 2px var(--glow-color);
+        }
+
+        .display {
+            background: rgba(0, 0, 0, 0.3);
+            font-size: clamp(2.5rem, 12vw, 4rem); /* Responsive font size */
+            font-weight: 300;
+            text-align: right;
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        /* Hide scrollbar for the display */
+        .display::-webkit-scrollbar { display: none; }
+        .display { -ms-overflow-style: none; scrollbar-width: none; }
+
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .btn {
+            /* RESPONSIVE SIZING: Button size adjusts to screen width */
+            --btn-size: clamp(50px, 16vw, 65px);
+            height: var(--btn-size);
+            width: var(--btn-size);
+            
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid transparent;
+            border-radius: 50%;
+            color: var(--text-color);
+            
+            font-size: clamp(1.2rem, 5vw, 1.5rem); /* Responsive text */
+            font-weight: 400;
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--glass-border);
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .btn.zero {
+            grid-column: span 2;
+            width: calc(var(--btn-size) * 2 + 15px); /* Adjusts based on button size */
+            border-radius: 35px;
+            justify-content: flex-start;
+            padding-left: 25px;
+        }
+
+        .btn.operator { background: var(--operator-bg); }
+        .btn.special { background: rgba(0, 0, 0, 0.15); }
+    </style>
+</head>
+<body>
+
+<div class="page-container">
+    <div class="header">
+        <h1>Docdril</h1>
+    </div>
+    <div class="calculator">
+        <div class="display">0</div>
+        <div class="buttons">
+            <button class="btn special" data-action="clear">AC</button>
+            <button class="btn special" data-action="negate">+/-</button>
+            <button class="btn special" data-action="percent">%</button>
+            <button class="btn operator" data-action="divide">÷</button>
+
+            <button class="btn">7</button>
+            <button class="btn">8</button>
+            <button class="btn">9</button>
+            <button class="btn operator" data-action="multiply">×</button>
+
+            <button class="btn">4</button>
+            <button class="btn">5</button>
+            <button class="btn">6</button>
+            <button class="btn operator" data-action="subtract">−</button>
+
+            <button class="btn">1</button>
+            <button class="btn">2</button>
+            <button class="btn">3</button>
+            <button class="btn operator" data-action="add">+</button>
+
+            <button class="btn zero">0</button>
+            <button class="btn" data-action="decimal">.</button>
+            <button class="btn operator" data-action="calculate">=</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // JavaScript functionality remains the same.
+    const calculator = document.querySelector('.calculator');
+    const display = calculator.querySelector('.display');
+    const buttons = calculator.querySelector('.buttons');
+    let displayValue = '0';
+    let firstValue = '';
+    let operator = '';
+    let shouldResetDisplay = false;
+
+    function updateDisplay() { display.textContent = displayValue; }
+    updateDisplay();
+
+    function calculate(n1, op, n2) {
+        const num1 = parseFloat(n1);
+        const num2 = parseFloat(n2);
+        if (op === 'add') return num1 + num2;
+        if (op === 'subtract') return num1 - num2;
+        if (op === 'multiply') return num1 * num2;
+        if (op === 'divide') return num1 / num2;
+    }
+
+    buttons.addEventListener('click', e => {
+        if (!e.target.matches('button')) return;
+
+        const key = e.target;
+        const action = key.dataset.action;
+        const keyContent = key.textContent;
+
+        if (!action) {
+            if (displayValue === '0' || shouldResetDisplay) {
+                displayValue = keyContent;
+                shouldResetDisplay = false;
+            } else { displayValue += keyContent; }
+        } else if (action === 'decimal') {
+            if (!displayValue.includes('.')) { displayValue += '.'; }
+        } else if (action === 'add' || action === 'subtract' || action === 'multiply' || action === 'divide') {
+            if (operator && firstValue && !shouldResetDisplay) {
+                const result = calculate(firstValue, operator, displayValue);
+                displayValue = String(result);
+                updateDisplay();
+            }
+            firstValue = displayValue;
+            operator = action;
+            shouldResetDisplay = true;
+        } else if (action === 'clear') {
+            displayValue = '0';
+            firstValue = '';
+            operator = '';
+            key.textContent = 'AC';
+        } else if (action === 'negate') {
+            displayValue = String(parseFloat(displayValue) * -1);
+        } else if (action === 'percent') {
+            displayValue = String(parseFloat(displayValue) / 100);
+        } else if (action === 'calculate') {
+            if (firstValue && operator) {
+                let secondValue = displayValue;
+                displayValue = String(calculate(firstValue, operator, secondValue));
+                firstValue = displayValue;
+                shouldResetDisplay = true;
+            }
+        }
+        
+        if (action !== 'clear' && displayValue !== '0') {
+            calculator.querySelector('[data-action="clear"]').textContent = 'C';
+        }
+        updateDisplay();
+    });
+</script>
+
+</body>
+</html>
